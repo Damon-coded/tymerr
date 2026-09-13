@@ -3,15 +3,11 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
   import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
   // ====================================================================
-  // FIREBASE CONFIG — replace this with YOUR project's config object.
+  // FIREBASE CONFIG 
   // ====================================================================
 const firebaseConfig = {
-    apiKey: "AIzaSyDKPOmP_HuGrca5AX3HhEn6xr4EBfu-xhs",
-  authDomain: "my-study-tracker-3678f.firebaseapp.com",
-  projectId: "my-study-tracker-3678f",
-  storageBucket: "my-study-tracker-3678f.firebasestorage.app",
-  messagingSenderId: "240696535190",
-  appId: "1:240696535190:web:df3a7a13315811c411fab7"
+    apiKey: "(hidden [-_-] )",
+  //hidden//**
   };
 
   const app = initializeApp(firebaseConfig);
