@@ -1,5 +1,4 @@
 # Tymerr
-# Tymerr
 
 Tymerr is a lightweight, personal study-tracking web app designed to make focused studying easier to manage, track, and understand.
 
