@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tymerr. | study tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+.jee-dashboard *{box-sizing:border-box;margin:0;padding:0}
+.jee-dashboard{font-family:'Inter',sans-serif;color:#e0e0e0;font-size:0.9rem}
+.jee-inner{background:#111;border-radius:12px;padding:1.25rem;margin-bottom:1rem}
+.jee-header{margin-bottom:1rem}
+.jee-header h2{font-family:'Spectral',serif;font-size:1.3rem;font-weight:600;color:#e0e0e0;margin-bottom:0.2rem}
+.jee-header p{font-size:0.75rem;color:#888;margin:0}
+.jee-controls{display:flex;gap:0.6rem;margin-bottom:1rem;flex-wrap:wrap;align-items:center}
+.jee-search{flex:1;min-width:150px;padding:0.45rem 0.7rem;background:#1e1e1e;border:1px solid #333;border-radius:6px;color:#e0e0e0;font-size:0.8rem;font-family:'Inter',sans-serif;outline:none;transition:border-color 0.2s}
+.jee-search:focus{border-color:#666}
+.jee-search::placeholder{color:#555}
+.jee-btn{padding:0.45rem 0.8rem;border-radius:6px;font-size:0.76rem;cursor:pointer;font-family:'Inter',sans-serif;font-weight:500;transition:opacity 0.2s;border:none;white-space:nowrap}
+.jee-btn-outline{background:#1e1e1e;border:1px solid #333;color:#e0e0e0}
+.jee-btn-outline:hover{border-color:#666}
+.jee-btn-green{background:#4caf50;color:#fff}
+.jee-btn-green:hover{opacity:0.85}
+.jee-tabs{display:flex;gap:0.25rem;margin-bottom:1rem;background:#1a1a1a;padding:0.25rem;border-radius:8px;width:fit-content}
+.jee-tab{padding:0.4rem 1rem;border:none;background:transparent;color:#888;font-size:0.78rem;font-weight:500;cursor:pointer;border-radius:6px;transition:background 0.15s,color 0.15s;font-family:'Inter',sans-serif}
+.jee-tab:hover{color:#e0e0e0}
+.jee-tab.active{background:#2a2a2a;color:#e0e0e0}
+.jee-panel{display:none}
+.jee-panel.active{display:block}
+.jee-tier-hdr{display:flex;align-items:center;gap:0.5rem;margin:0.7rem 0 0.35rem}
+.jee-tier-badge{font-size:0.68rem;font-weight:600;padding:0.15rem 0.5rem;border-radius:4px}
+.jee-tier-badge.t1{background:rgba(76,175,80,0.18);color:#4caf50}
+.jee-tier-badge.t2{background:rgba(255,193,7,0.18);color:#ffc107}
+.jee-tier-badge.t3{background:rgba(239,159,39,0.18);color:#ef9f27}
+.jee-tier-desc{font-size:0.68rem;color:#666}
+.jee-chapters{display:flex;flex-direction:column;gap:0.25rem;margin-bottom:0.4rem}
+.jee-row{display:grid;grid-template-columns:1.5rem 1fr auto 3rem;align-items:center;gap:0.5rem;padding:0.4rem 0.55rem;background:#1e1e1e;border-radius:6px;position:relative}
+.jee-row .sno{font-size:0.7rem;color:#666;text-align:center;font-weight:500}
+.jee-row .name{font-size:0.78rem;color:#e0e0e0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.jee-row .bar-wrap{height:5px;background:#2a2a2a;border-radius:3px;overflow:hidden}
+.jee-row .bar{height:100%;border-radius:3px;transition:width 0.6s ease;width:0}
+.jee-row .pct{font-size:0.7rem;font-weight:600;text-align:right}
+.jee-row.t1 .pct{color:#4caf50}
+.jee-row.t1 .bar{background:#4caf50}
+.jee-row.t2 .pct{color:#ffc107}
+.jee-row.t2 .bar{background:#ffc107}
+.jee-row.t3 .pct{color:#ef9f27}
+.jee-row.t3 .bar{background:#ef9f27}
+.jee-row .tip{position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);background:#333;color:#e0e0e0;font-size:0.65rem;padding:0.2rem 0.5rem;border-radius:4px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity 0.15s;z-index:10}
+.jee-row .tip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:4px solid transparent;border-top-color:#333}
+.jee-row:hover .tip{opacity:1}
+.jee-no-results{padding:1.5rem;text-align:center;color:#666;font-size:0.8rem}
+.jee-footer{margin-top:1rem;padding-top:0.6rem;border-top:1px solid #2a2a2a;font-size:0.68rem;color:#555;text-align:center}
+@media (max-width:600px){
+.jee-inner{padding:0.75rem}
+.jee-row{grid-template-columns:1.2rem 1fr auto 2.6rem;gap:0.3rem;padding:0.35rem 0.4rem}
+.jee-controls{flex-direction:column}
+.jee-search{width:100%;min-width:0}
+.jee-tabs{width:100%}
+.jee-tab{flex:1;text-align:center;padding:0.4rem 0.5rem}
+}
+@media print{
+body *{visibility:hidden!important}
+.jee-dashboard,.jee-dashboard *{visibility:visible!important}
+.jee-dashboard{position:absolute;left:0;top:0;width:100%}
+.jee-inner{background:#111!important;padding:0.3in!important}
+.jee-btn,.jee-search{display:none!important}
+.jee-row{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open menu">☰</button>
+<div class="shell">
+
+  <!-- ============ SIDEBAR ============ -->
+  <nav class="sidebar" id="sidebar">
+    <div class="brand-row">
+      <div class="brand">Tymerr<span>.</span></div>
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Collapse sidebar">‹</button>
+    </div>
+
+    <div class="nav-group">
+      <button class="nav-item active" data-page="timer">
+        <span class="nav-ico">◴</span><span class="nav-label">Timer</span>
+      </button>
+      <button class="nav-item" data-page="activity">
+        <span class="nav-ico">▦</span><span class="nav-label">Analytics</span>
+      </button>
+      <button class="nav-item" data-page="planner">
+        <span class="nav-ico">☑</span><span class="nav-label">Planner</span>
+      </button>
+      <button class="nav-item" data-page="log">
+        <span class="nav-ico">☰</span><span class="nav-label">Log</span>
+      </button>
+      <button class="nav-item" data-page="subjects">
+        <span class="nav-ico">◇</span><span class="nav-label">Subjects</span>
+      </button>
+    </div>
+
+    <div class="nav-group nav-group-bottom">
+      <button class="nav-item" id="navDevTools" data-page="devtools" style="display:none;">
+        <span class="nav-ico">🛠</span><span class="nav-label">Dev Tools</span>
+      </button>
+      <button class="nav-item" data-page="admin">
+        <span class="nav-ico">⚙</span><span class="nav-label">Admin</span>
+      </button>
+      <div class="bottom-row">
+        <button class="theme-btn" id="themeToggle">☀</button>
+        <div class="id-tag" id="idTag" title="Your private anonymous ID">loading…</div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main">
+
+    <!-- ---------- PAGE: TIMER ---------- -->
+    <section class="page active" id="page-timer">
+      <div class="page-head">
+        <h1>Timer</h1>
+        <p class="page-sub">Start a session whenever you're ready.</p>
+      </div>
+
+      <div class="hero">
+        <div class="hero-center">
+          <div class="ring-wrap">
+            <svg class="ring" viewBox="0 0 260 260">
+              <circle class="ring-track" cx="130" cy="130" r="118"></circle>
+              <circle class="ring-progress" id="ringProgress" cx="130" cy="130" r="118" stroke-dasharray="741.4" stroke-dashoffset="741.4"></circle>
+            </svg>
+            <div class="ring-center">
+              <div class="elapsed" id="elapsed">00:00:00</div>
+              <div class="subject-label" id="subjectLabel"></div>
+            </div>
+          </div>
+
+          <div class="controls">
+            <select id="subjectSelect" aria-label="Subject"></select>
+            <button class="btn btn-start" id="startBtn">Start</button>
+            <button class="btn btn-pause" id="pauseBtn" disabled>Pause</button>
+            <button class="btn btn-stop" id="stopBtn" disabled>Stop</button>
+          </div>
+          <input class="note-input" id="noteInput" placeholder="What are you working on? (optional)" maxlength="80">
+          <div class="focus-hint" id="focusHint">Stay focused — tap Stop when you're done.</div>
+        </div>
+      </div>
+
+      <div class="stats stats-two stats-centered">
+        <div class="stat-card">
+          <div class="stat-label">Today</div>
+          <div class="stat-value" id="statToday">0h 0m</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Best Day</div>
+          <div class="stat-value" id="statBestDay">0h 0m</div>
+        </div>
+      </div>
+
+      <div class="breakdown">
+        <div class="section-head">
+          <div class="section-title">By subject</div>
+          <div class="section-sub">today</div>
+        </div>
+        <div id="breakdownList" class="donut-row"></div>
+      </div>
+
+      <aside class="sticky-note" id="stickyNote">
+        <div class="sn-header">
+          <span>Today's Plan</span>
+          <span class="sn-close" id="snClose">✕</span>
+        </div>
+        <div class="sn-body" id="snBody"></div>
+      </aside>
+
+      <div class="exam-countdown-strip" id="examCountdownStrip"></div>
+    </section>
+
+    <!-- ---------- PAGE: ACTIVITY ---------- -->
+    <section class="page" id="page-activity">
+      <div class="page-head page-head-row">
+        <div>
+          <h1>Analytics</h1>
+          <p class="page-sub">Clear, simple numbers — how much you study, when, and how it's trending.</p>
+        </div>
+      </div>
+
+      <div class="streak-row">
+        <div class="stat-card">
+          <div class="stat-label">Current streak</div>
+          <div class="stat-value" id="streakCurrent">0 days</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Longest streak</div>
+          <div class="stat-value" id="streakLongest">0 days</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Active days (1yr)</div>
+          <div class="stat-value" id="activeDaysCount">0</div>
+        </div>
+      </div>
+
+         <div class="heatmap-card">
+        <div class="section-head">
+          <div class="section-title">Study calendar</div>
+          <div class="section-sub" id="heatmapRange"></div>
+        </div>
+        <div class="heatmap-scroll">
+          <div id="heatmapMonths" class="heatmap-months"></div>
+          <div class="heatmap-body" id="heatmapBody">
+            <div id="heatmapDayLabels" class="heatmap-day-labels"></div>
+            <div id="heatmapGrid" class="heatmap-grid"></div>
+          </div>
+        </div>
+        <div class="heatmap-legend">
+          <span>Less</span>
+          <span class="legend-swatch l0"></span>
+          <span class="legend-swatch l1"></span>
+          <span class="legend-swatch l2"></span>
+          <span class="legend-swatch l3"></span>
+          <span class="legend-swatch l4"></span>
+          <span>More</span>
+        </div>
+      </div>
+
+      <!-- PACE CARD — now with week/month/year toggle -->
+      <div class="pace-card">
+        <div class="section-head">
+          <div class="section-title">Pace</div>
+          <div class="range-toggle" id="paceRangeToggle">
+            <button class="range-btn active" data-range="week">Week</button>
+            <button class="range-btn" data-range="month">Month</button>
+            <button class="range-btn" data-range="year">Year</button>
+          </div>
+        </div>
+        <div class="pace-grid">
+          <div class="pace-item">
+            <div class="pace-label">Daily average</div>
+            <div class="pace-value" id="paceDailyAvg">0h 0m</div>
+            <div class="pace-sub">on active days</div>
+          </div>
+          <div class="pace-item">
+            <div class="pace-label" id="paceCurrentLabel">This week</div>
+            <div class="pace-value" id="paceThisWeek">0h 0m</div>
+            <div class="pace-sub" id="paceWeekDelta">—</div>
+          </div>
+          <div class="pace-item">
+            <div class="pace-label" id="pacePreviousLabel">Last week</div>
+            <div class="pace-value" id="paceLastWeek">0h 0m</div>
+            <div class="pace-sub">for comparison</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bargraph-card">
+        <div class="section-head">
+          <div class="section-title">Study time</div>
+          <div class="range-toggle" id="rangeToggle">
+            <button class="range-btn active" data-range="week">Week</button>
+            <button class="range-btn" data-range="month">Month</button>
+            <button class="range-btn" data-range="year">Year</button>
+          </div>
+        </div>
+        <div class="section-sub" id="bargraphRangeLabel" style="margin-bottom:0.9rem;"></div>
+        <div id="bargraphChart" class="bargraph-chart"></div>
+      </div>
+
+      <div class="dow-card">
+        <div class="section-head">
+          <div class="section-title">Weekday pattern</div>
+          <div class="section-sub">average per weekday, all time</div>
+        </div>
+        <div id="dowChart" class="dow-chart"></div>
+      </div>
+
+
+      <div class="subject-compare-card">
+        <div class="section-head">
+          <div class="section-title">Who's winning</div>
+          <div class="range-toggle" id="subjectRangeToggle">
+            <button class="range-btn active" data-range="week">Week</button>
+            <button class="range-btn" data-range="month">Month</button>
+            <button class="range-btn" data-range="year">Year</button>
+          </div>
+        </div>
+        <div id="subjectCompareChart" class="bargraph-chart"></div>
+        <div id="subjectCompareLegend" class="subject-compare-legend"></div>
+      </div>
+
+      <div class="subject-detail-card">
+        <div class="section-head">
+          <div class="section-title">Subject deep dive</div>
+          <select id="subjectDetailSelect"></select>
+        </div>
+        <div id="subjectDetailLoading" class="subject-detail-loading">
+          <div class="loading-spinner"></div>
+          <div id="subjectDetailLoadingText" class="loading-text"></div>
+        </div>
+        <div id="subjectDetailContent" class="subject-detail-content"></div>
+      </div>
+
+      <!-- "By subject — all time" section REMOVED (change 1) -->
+
+      <button class="export-btn" id="exportBtn" title="Download report"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download report</button>
+
+    </section>
+
+    <!-- ---------- PAGE: PLANNER ---------- -->
+    <section class="page" id="page-planner">
+      <div class="page-head page-head-row">
+        <div>
+          <h1>Planner</h1>
+          <p class="page-sub">Plan your daily goals.</p>
+        </div>
+        <button class="btn exam-add-btn" id="examAddBtn">+ Add exam</button>
+      </div>
+
+      <div class="plt-subnav">
+        <button class="plt-subnav-btn active" data-plt="goals">Daily goals</button>
+        <button class="plt-subnav-btn" data-plt="jee">JEE dashboard</button>
+      </div>
+
+      <div class="plt-subtab active" id="plt-goals">
+        <div class="p-calendar" id="pCalendar">
+          <div class="p-cal-nav">
+            <button class="p-cal-btn" id="pCalToday">Today</button>
+            <button class="p-cal-btn" id="pCalPrev">‹</button>
+            <span class="p-cal-month" id="pCalMonth"></span>
+            <button class="p-cal-btn" id="pCalNext">›</button>
+          </div>
+          <div class="p-cal-grid" id="pCalGrid"></div>
+        </div>
+
+        <div class="p-goals-card" id="pGoalsCard">
+          <div class="p-goals-header">
+            <div class="p-goals-title-row">
+              <div class="p-goals-title" id="pGoalsTitle"></div>
+            </div>
+            <div class="p-progress-wrap">
+              <div class="p-progress-bar" id="pProgressBar"><div class="p-progress-fill" id="pProgressFill"></div></div>
+              <div class="p-progress-label" id="pProgressLabel">0 / 0 done</div>
+            </div>
+          </div>
+
+          <div id="pGoalList" class="p-goal-list"></div>
+
+          <div class="p-add-row">
+            <select id="pSubjectSelect" aria-label="Subject"><option value="">Subject</option></select>
+            <input id="pGoalInput" placeholder="Add a goal…" maxlength="120">
+            <button id="pAddBtn">+ Add</button>
+          </div>
+        </div>
+
+        <div class="p-carry-card" id="pCarryCard" style="display:none;">
+          <div class="p-carry-text" id="pCarryText"></div>
+          <button class="p-carry-btn" id="pCarryBtn">Carry forward →</button>
+        </div>
+      </div>
+
+      <div class="plt-subtab" id="plt-jee">
+        <div class="jee-dashboard" id="jeeDashboardRoot"></div>
+      </div>
+    </section>
+
+    <!-- ---------- PAGE: LOG ---------- -->
+    <section class="page" id="page-log">
+      <div class="page-head page-head-row">
+        <div>
+          <h1>Session log</h1>
+          <p class="page-sub" id="logCount"></p>
+        </div>
+        <input class="log-search" id="logSearch" type="text" placeholder="Search log…">
+      </div>
+      <div class="log-list" id="logList"></div>
+    </section>
+
+    <!-- ---------- PAGE: SUBJECTS ---------- -->
+    <section class="page" id="page-subjects">
+      <div class="page-head">
+        <h1>Subjects</h1>
+        <p class="page-sub">Manage the subjects you study.</p>
+      </div>
+      <div class="add-subject-row">
+        <input id="newSubjectInput" placeholder="add a subject…" maxlength="24">
+        <button id="addSubjectBtn">+ add</button>
+      </div>
+      <div id="subjectsList" class="subjects-list"></div>
+    </section>
+
+    <!-- ---------- PAGE: ADMIN ---------- -->
+    <section class="page" id="page-admin">
+      <div class="page-head">
+        <h1>Admin</h1>
+        <p class="page-sub"></p>
+      </div>
+
+      <div id="adminLoginView">
+        <input class="note-input" id="adminEmail" type="email" placeholder="Admin email" style="margin-bottom:0.6rem; display:block;">
+        <input class="note-input" id="adminPassword" type="password" placeholder="Password" style="margin-bottom:0.6rem; display:block;">
+        <button class="btn" id="adminLoginBtn" style="display:block; margin:0 auto;">Sign in</button>
+        <div id="adminError" style="color:var(--danger); font-size:0.8rem; margin-top:0.6rem;"></div>
+      </div>
+
+      <div id="adminDashboard" style="display:none;">
+          <div class="section-head">
+            <div class="section-title">All students</div>
+            <div style="display:flex; gap:0.5rem;">
+              <button class="btn" id="adminExportBtn" style="font-size:0.75rem; padding:0.4rem 0.8rem;">Export CSV</button>
+              <button class="btn" id="adminSignOutBtn" style="font-size:0.75rem; padding:0.4rem 0.8rem;">Sign out</button>
+            </div>
+          </div>
+          <div class="stats" style="margin-bottom:1.5rem;">
+            <div class="stat-card">
+              <div class="stat-label">Students</div>
+              <div class="stat-value" id="adminStudentCount">0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Total hours logged</div>
+              <div class="stat-value" id="adminTotalHours">0h</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Active this week</div>
+              <div class="stat-value" id="adminActiveWeek">0</div>
+            </div>
+          </div>
+
+          <input class="log-search" id="adminRosterSearch" type="text" placeholder="Filter students…" style="margin-bottom:0.7rem;">
+          <div id="adminRosterList"></div>
+        <div id="adminDetailView" style="display:none; margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid var(--line);">
+          <div class="section-head">
+            <div class="section-title" id="adminDetailTitle">Student</div>
+            <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+              <button class="btn" id="adminResetBtn" style="font-size:0.7rem; padding:0.4rem 0.7rem; background:var(--danger); border-color:var(--danger); color:#fff;">Reset data</button>
+              <button class="btn" id="adminBackBtn" style="font-size:0.75rem; padding:0.4rem 0.8rem;">Back</button>
+            </div>
+          </div>
+          <div id="adminDetailTrend" class="breakdown" style="margin-bottom:1rem;"></div>
+          <div id="adminDetailBreakdown" class="breakdown"></div>
+          <div id="adminDetailLog" class="log-list"></div>
+        </div>
+      </div>
+
+      <div class="admin-footer">
+        © 2026<br>
+        Crafted with ❤ by <strong>sTucKeD</strong> (Admin)
+      </div>
+    </section>
+
+    <!-- ---------- PAGE: DEV TOOLS (only reachable after admin sign-in) ---------- -->
+    <section class="page" id="page-devtools">
+      <div class="page-head">
+        <h1>Dev Tools</h1>
+        <p class="page-sub"></p>
+      </div>
+
+      <div class="dev-card">
+        <div style="font-size:0.75rem; color:var(--text-faint); font-weight:500; letter-spacing:0.04em; text-transform:uppercase; margin-bottom:0.25rem;">Fake history</div>
+        <label class="dev-label">Days of fake history
+          <input type="number" id="devDays" value="30" min="1" max="365">
+        </label>
+        <label class="dev-label">Sessions per active day (avg)
+          <input type="number" id="devSessionsPerDay" value="2" min="1" max="6">
+        </label>
+        <label class="dev-label">Chance a day has any activity
+          <input type="number" id="devActiveChance" value="70" min="1" max="100"> %
+        </label>
+        <button id="devGenerateBtn" class="btn btn-start" style="margin-top:0.5rem;">Generate fake history</button>
+        <button id="devAddTodayBtn" class="btn">+ Add one random session today</button>
+        <button id="devClearBtn" class="btn btn-stop">Clear all my data</button>
+        <div id="devStatus" class="dev-status"></div>
+      </div>
+
+      <div class="dev-card">
+        <div style="font-size:0.75rem; color:var(--text-faint); font-weight:500; letter-spacing:0.04em; text-transform:uppercase; margin-bottom:0.25rem;">Midnight split tester</div>
+        <label class="dev-label">Session starts (hrs before midnight)
+          <input type="number" id="devSplitHrsBefore" value="2" min="0.1" max="23" step="0.5">
+        </label>
+        <label class="dev-label">Session duration (minutes)
+          <input type="number" id="devSplitDuration" value="180" min="1" max="1440">
+        </label>
+        <button id="devSplitTestBtn" class="btn" style="border-color:var(--sage); color:var(--sage);">+ Inject midnight-crossing session</button>
+        <div id="devSplitResult" class="dev-split-result"></div>
+      </div>
+
+      <div class="dev-card">
+        <div style="font-size:0.75rem; color:var(--text-faint); font-weight:500; letter-spacing:0.04em; text-transform:uppercase; margin-bottom:0.25rem;">Break reminder tester</div>
+        <div style="font-size:0.78rem; color:var(--text-dim); line-height:1.5;">
+          Advance the running/paused timer by 1h 59m 50s — ring fills almost full, break notification fires in 10s.
+        </div>
+        <button id="devBreakTestBtn" class="btn" style="border-color:var(--amber); color:var(--amber);" disabled>⏱ Advance timer</button>
+        <div id="devBreakStatus" class="dev-status"></div>
+      </div>
+
+      <div class="dev-card">
+        <div style="font-size:0.75rem; color:var(--text-faint); font-weight:500; letter-spacing:0.04em; text-transform:uppercase; margin-bottom:0.25rem;">Time travel</div>
+        <div style="font-size:0.78rem; color:var(--text-dim); line-height:1.5; margin-bottom:0.5rem;">
+          Set a virtual date to test planner, sticky note, and exam countdown.
+        </div>
+        <label class="dev-label">Virtual date
+          <input type="date" id="devVirtualDate">
+        </label>
+        <div style="display:flex; gap:0.4rem; margin-top:0.5rem;">
+          <button id="devTimeApplyBtn" class="btn btn-start">Apply</button>
+          <button id="devTimeResetBtn" class="btn" style="border-color:var(--sage); color:var(--sage);">Reset to real time</button>
+        </div>
+        <div id="devTimeStatus" class="dev-status"></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div id="breakOverlay" class="break-overlay">
+  <div class="break-card">
+    <div class="break-countdown">
+      <svg viewBox="0 0 60 60">
+        <circle class="cd-track" cx="30" cy="30" r="26"/>
+        <circle class="cd-progress" id="cdProgress" cx="30" cy="30" r="26" stroke-dasharray="163.36" stroke-dashoffset="0"/>
+      </svg>
+      <span class="cd-text" id="cdText">60</span>
+    </div>
+    <div class="break-body">
+      <h3>Time for a break!</h3>
+      <p>You've been studying for 2 hours. Take a rest and hydrate.</p>
+    </div>
+    <div class="break-actions">
+      <button class="btn btn-dismiss" id="breakDismiss">Dismiss</button>
+      <button class="btn btn-rest" id="breakRest">Take Rest</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastContainer"></div>
+
+<div id="examModal" class="exam-modal-overlay">
+  <div class="exam-modal-card">
+    <div class="exam-modal-head">
+      <span>Add exam</span>
+      <button id="examModalClose">✕</button>
+    </div>
+    <div class="exam-modal-body">
+      <label class="exam-field-label">Exam name</label>
+      <input class="note-input" id="examName" placeholder="e.g. JEE Advanced 2026" maxlength="40" style="max-width:100%; margin:0 0 0.9rem;">
+      <label class="exam-field-label">Exam date</label>
+      <input class="note-input" id="examDate" type="date" style="max-width:100%; margin:0 0 0.9rem;">
+      <label class="exam-field-label">Banner image URL <span style="color:var(--text-faint); font-weight:400;">(optional)</span></label>
+      <input class="note-input" id="examBanner" placeholder="https://…" style="max-width:100%; margin:0 0 1.1rem;">
+      <div style="display:flex; gap:0.5rem; justify-content:flex-end;">
+        <button class="btn" id="examModalCancel">Cancel</button>
+        <button class="btn btn-start" id="examModalSave">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="script.js"></script>
+<script>
+(function(){'use strict';
+// ── Data ──
+var subjects={
+  physics:{
+    name:'Physics',
+    chapters:[
+      {n:'Current Electricity',w:6.57,t:1,c:'Class XII'},
+      {n:'Ray Optics & Optical Instruments',w:5.04,t:1,c:'Class XII'},
+      {n:'Semiconductor Electronics',w:4.75,t:1,c:'Class XII'},
+      {n:'Gravitation',w:4.49,t:1,c:'Class XI'},
+      {n:'Electrostatic Potential & Capacitance',w:4.49,t:1,c:'Class XII'},
+      {n:'Rotational Motion',w:4.31,t:1,c:'Class XI'},
+      {n:'Units & Measurements',w:4.24,t:1,c:'Class XI'},
+      {n:'Dual Nature of Radiation & Matter',w:4.05,t:1,c:'Class XII'},
+      {n:'Alternating Current',w:3.73,t:2,c:'Class XII'},
+      {n:'Oscillations (SHM)',w:3.25,t:2,c:'Class XI'},
+      {n:'Electromagnetic Induction',w:3.25,t:2,c:'Class XII'},
+      {n:'Electric Charges & Fields',w:3.18,t:2,c:'Class XII'},
+      {n:'Nuclei',w:3.14,t:2,c:'Class XII'},
+      {n:'Thermodynamics',w:3.06,t:2,c:'Class XI'},
+      {n:'Mechanical Properties of Fluids',w:3.00,t:2,c:'Class XI'},
+      {n:'Electromagnetic Waves',w:2.96,t:2,c:'Class XII'},
+      {n:'Kinetic Theory of Gases',w:2.88,t:2,c:'Class XI'},
+      {n:'Moving Charges & Magnetism',w:2.89,t:2,c:'Class XII'},
+      {n:'Motion in a Plane',w:2.92,t:2,c:'Class XI'},
+      {n:'Work, Energy & Power',w:2.37,t:2,c:'Class XI'},
+      {n:'Motion in a Straight Line',w:2.63,t:2,c:'Class XI'},
+      {n:'Centre of Mass',w:2.56,t:2,c:'Class XI'},
+      {n:'Atoms',w:2.48,t:2,c:'Class XII'},
+      {n:'Wave Optics',w:2.30,t:2,c:'Class XII'},
+      {n:'Mechanical Properties of Solids',w:2.08,t:2,c:'Class XI'},
+      {n:'Thermal Properties of Matter',w:2.08,t:2,c:'Class XI'},
+      {n:"Newton's Laws of Motion",w:2.05,t:2,c:'Class XI'},
+      {n:'Magnetism & Matter',w:1.90,t:3,c:'Class XII'},
+      {n:'Waves',w:1.94,t:3,c:'Class XI'},
+      {n:'Mathematical Tools',w:0.00,t:3,c:'Class XI'}
+    ]
+  },
+  chemistry:{
+    name:'Chemistry',
+    chapters:[
+      {n:'Coordination Compounds',w:6.50,t:1,c:'Class XII'},
+      {n:'Chemical Thermodynamics',w:3.65,t:1,c:'Class XI'},
+      {n:'Atomic Structure',w:3.34,t:1,c:'Class XI'},
+      {n:'Chemical Bonding & Molecular Structure',w:3.34,t:1,c:'Class XI'},
+      {n:'Electrochemistry',w:3.30,t:1,c:'Class XII'},
+      {n:'Chemical Kinetics',w:3.30,t:1,c:'Class XII'},
+      {n:'Aldehydes, Ketones & Carboxylic Acids',w:3.30,t:1,c:'Class XII'},
+      {n:'General Organic Chemistry (GOC)',w:3.30,t:1,c:'Class XII'},
+      {n:'p-Block Elements',w:3.30,t:1,c:'Class XII'},
+      {n:'d & f Block Elements',w:3.30,t:1,c:'Class XII'},
+      {n:'Aromatic Compounds',w:3.30,t:1,c:'Class XII'},
+      {n:'Alkyl Halides',w:3.30,t:1,c:'Class XII'},
+      {n:'Alcohols, Phenols & Ethers',w:3.30,t:1,c:'Class XII'},
+      {n:'Biomolecules, Polymers & Everyday Chemistry',w:3.30,t:1,c:'Class XII'},
+      {n:'Chemical & Ionic Equilibrium',w:3.00,t:2,c:'Class XI'},
+      {n:'Some Basic Concepts / Mole Concept',w:2.82,t:2,c:'Class XI'},
+      {n:'Solid State & Surface Chemistry',w:2.50,t:2,c:'Class XII'},
+      {n:'Solutions & Colligative Properties',w:2.50,t:2,c:'Class XII'},
+      {n:'Hydrocarbons',w:2.00,t:2,c:'Class XI'},
+      {n:'Hydrogen & s-Block Elements',w:2.00,t:2,c:'Class XII'},
+      {n:'Classification & Periodicity',w:1.93,t:3,c:'Class XI'},
+      {n:'States of Matter',w:1.89,t:3,c:'Class XI'},
+      {n:'Redox Reactions',w:1.50,t:3,c:'Class XI'},
+      {n:'Stereochemistry',w:1.50,t:3,c:'Class XII'},
+      {n:'Metallurgy',w:1.00,t:3,c:'Class XII'},
+      {n:'Environmental Chemistry',w:1.00,t:3,c:'Class XII'},
+      {n:'Salt Analysis',w:1.00,t:3,c:'Class XII'}
+    ]
+  },
+  mathematics:{
+    name:'Mathematics',
+    chapters:[
+      {n:'Three-Dimensional Geometry',w:7.35,t:1,c:'Class XII'},
+      {n:'Sequences & Series',w:5.74,t:1,c:'Class XI'},
+      {n:'Limit, Continuity & Differentiability',w:5.50,t:1,c:'Class XII'},
+      {n:'Definite Integration & Area',w:5.08,t:1,c:'Class XII'},
+      {n:'Binomial Theorem',w:5.05,t:1,c:'Class XI'},
+      {n:'Complex Numbers',w:4.75,t:1,c:'Class XI'},
+      {n:'Applications of Derivatives',w:4.75,t:1,c:'Class XII'},
+      {n:'Vector Algebra',w:4.69,t:1,c:'Class XII'},
+      {n:'Differential Equations',w:4.16,t:2,c:'Class XII'},
+      {n:'Determinants',w:4.00,t:2,c:'Class XII'},
+      {n:'Permutations & Combinations',w:3.60,t:2,c:'Class XI'},
+      {n:'Matrices',w:3.46,t:2,c:'Class XII'},
+      {n:'Quadratic Equations',w:3.30,t:2,c:'Class XI'},
+      {n:'Circles',w:3.24,t:2,c:'Class XI'},
+      {n:'Probability',w:3.09,t:2,c:'Class XII'},
+      {n:'Statistics',w:3.00,t:2,c:'Class XI'},
+      {n:'Application of Integrals',w:2.97,t:2,c:'Class XII'},
+      {n:'Straight Lines',w:2.71,t:2,c:'Class XI'},
+      {n:'Parabola',w:2.44,t:2,c:'Class XI'},
+      {n:'Ellipse',w:2.11,t:2,c:'Class XI'},
+      {n:'Hyperbola',w:1.65,t:3,c:'Class XI'},
+      {n:'Indefinite Integration',w:1.65,t:3,c:'Class XII'},
+      {n:'Inverse Trigonometric Functions',w:1.59,t:3,c:'Class XII'},
+      {n:'Trigonometric Equations',w:1.35,t:3,c:'Class XI'},
+      {n:'Relations & Functions',w:1.25,t:3,c:'Class XII'},
+      {n:'Methods of Differentiation',w:1.24,t:3,c:'Class XII'},
+      {n:'Trigonometric Ratios & Identities',w:1.02,t:3,c:'Class XI'},
+      {n:'Sets',w:1.00,t:3,c:'Class XI'},
+      {n:'Basic Maths & Logarithm',w:0.59,t:3,c:'Class XI'},
+      {n:'Properties of Triangle',w:0.36,t:3,c:'Class XI'}
+    ]
+  }
+};
+
+var currentSubj='physics',sortBy='weightage',searchQ='',rendered=false;
+var tierLabels={1:'Focus first',2:'Important',3:'Cover later'};
+var tierClasses={1:'t1',2:'t2',3:'t3'};
+var tierDescs={1:'\u22655% weightage',2:'2\u20134.99% weightage',3:'<2% weightage'};
+
+function qsa(s){return document.querySelectorAll(s)}
+
+function getFiltered(subjId){
+  var chs=subjects[subjId].chapters.slice();
+  if(sortBy==='alpha') chs.sort(function(a,b){
+    var an=a.n.toLowerCase(),bn=b.n.toLowerCase();
+    return an<bn?-1:an>bn?1:0;
+  });
+  return chs;
+}
+
+function render(){
+  var root=document.getElementById('jeeDashboardRoot');
+  if(!root) return;
+  var subj=subjects[currentSubj];
+  var chs=getFiltered(currentSubj);
+  var maxW=0;
+  subj.chapters.forEach(function(c){if(c.w>maxW)maxW=c.w});
+  if(searchQ){
+    var q=searchQ.toLowerCase();
+    chs=chs.filter(function(c){return c.n.toLowerCase().indexOf(q)!==-1});
+  }
+  var t1=chs.filter(function(c){return c.t===1});
+  var t2=chs.filter(function(c){return c.t===2});
+  var t3=chs.filter(function(c){return c.t===3});
+  var html='<div class="jee-inner">'+
+    '<div class="jee-header"><h2>JEE Mains Chapter-wise Weightage</h2><p>Based on PYQ analysis from 2023\u20132025 (Jan + Apr sessions)</p></div>'+
+    '<div class="jee-controls">'+
+    '<input class="jee-search" id="jeeSearch" type="text" placeholder="Search chapters\u2026" value="'+searchQ+'">'+
+    '<button class="jee-btn jee-btn-outline" id="jeeSortBtn">Sort: '+(sortBy==='weightage'?'Weightage':'A\u2013Z')+'</button>'+
+    '<button class="jee-btn jee-btn-green" id="jeePdfBtn">Download PDF</button>'+
+    '</div>'+
+    '<div class="jee-tabs" id="jeeTabs">'+
+    '<button class="jee-tab'+(currentSubj==='physics'?' active':'')+'" data-subj="physics">Physics</button>'+
+    '<button class="jee-tab'+(currentSubj==='chemistry'?' active':'')+'" data-subj="chemistry">Chemistry</button>'+
+    '<button class="jee-tab'+(currentSubj==='mathematics'?' active':'')+'" data-subj="mathematics">Mathematics</button>'+
+    '</div>'+
+    '<div class="jee-panel active">';
+  if(chs.length===0){
+    html+='<div class="jee-no-results">No chapters match &quot;<strong>'+searchQ+'</strong>&quot;</div>';
+  }else{
+    if(t1.length) html+=renderTier(t1,1,maxW);
+    if(t2.length) html+=renderTier(t2,2,maxW);
+    if(t3.length) html+=renderTier(t3,3,maxW);
+  }
+  html+='</div>'+
+    '<div class="jee-footer">Data sourced from JEE Mains PYQ analysis 2023\u20132025 | Physics Wallah, eSaral, Careers360</div>'+
+    '</div>';
+  root.innerHTML=html;
+  bindEvents();
+  animateBars();
+}
+
+function renderTier(chs,tier,maxW){
+  var html='<div class="jee-tier-hdr"><span class="jee-tier-badge '+tierClasses[tier]+'">Tier '+tier+' \u2013 '+tierLabels[tier]+'</span><span class="jee-tier-desc">'+tierDescs[tier]+'</span></div>'+
+    '<div class="jee-chapters" id="jeeTier'+tier+'">';
+  chs.forEach(function(c,i){
+    var pct=c.w/maxW*100;
+    var cls=tierClasses[c.t];
+    html+='<div class="jee-row '+cls+'" data-tip="'+c.c+'">'+
+      '<span class="sno">'+(i+1)+'</span>'+
+      '<span class="name" title="'+c.n+'">'+c.n+'</span>'+
+      '<div class="bar-wrap"><div class="bar" data-w="'+pct+'"></div></div>'+
+      '<span class="pct">'+c.w.toFixed(2)+'%</span>'+
+      '<span class="tip">'+c.c+'</span></div>';
+  });
+  html+='</div>';
+  return html;
+}
+
+function animateBars(){
+  setTimeout(function(){
+    document.querySelectorAll('.jee-row .bar').forEach(function(b){
+      b.style.width=b.dataset.w+'%';
+    });
+  },50);
+}
+
+function bindEvents(){
+  var search=document.getElementById('jeeSearch');
+  if(search){
+    search.addEventListener('input',function(){
+      searchQ=this.value;
+      render();
+    });
+  }
+  var sortBtn=document.getElementById('jeeSortBtn');
+  if(sortBtn){
+    sortBtn.addEventListener('click',function(){
+      sortBy=sortBy==='weightage'?'alpha':'weightage';
+      render();
+    });
+  }
+  var pdfBtn=document.getElementById('jeePdfBtn');
+  if(pdfBtn){
+    pdfBtn.addEventListener('click',function(){window.print()});
+  }
+  document.querySelectorAll('#jeeTabs .jee-tab').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      currentSubj=this.dataset.subj;
+      searchQ='';
+      render();
+    });
+  });
+}
+
+function initJeeDashboard(){
+  if(rendered) return;
+  rendered=true;
+  render();
+}
+
+function initPltSubtab(){
+  qsa('.plt-subnav-btn').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      qsa('.plt-subnav-btn').forEach(function(b){b.classList.remove('active')});
+      btn.classList.add('active');
+      var name=btn.dataset.plt;
+      qsa('.plt-subtab').forEach(function(p){p.classList.remove('active')});
+      var panel=document.getElementById('plt-'+name);
+      if(panel) panel.classList.add('active');
+      if(name==='jee') initJeeDashboard();
+    });
+  });
+  if(document.getElementById('plt-jee').classList.contains('active')) initJeeDashboard();
+}
+document.addEventListener('DOMContentLoaded',initPltSubtab);
+})();
+</script>
+</body>
+</html>
