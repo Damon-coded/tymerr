@@ -39,3 +39,5 @@ The project is also structured with separate administrative and developer functi
 ## Project Status
 
 Tymerr is an evolving project and serves as both a functional study tracker and a foundation for experimenting with productivity-focused features, analytics, and real-time data management.
+
+Checkout the website -> https://tymerr.github.io/
